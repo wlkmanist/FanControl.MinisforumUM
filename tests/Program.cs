@@ -51,6 +51,10 @@ internal static class Program
         new("f7bsi", F7bsiHost("F7BSI", "MGF7BSI", "1.08")),
         new("f7bsi", F7bsiHost("F7BSI", "MGF7BSI", "1.09")),
         new("f7bsi", F7bsiHost("F7BSW", "MGF7BSW", "1.01")),
+        new("f7bsl", F7bslHost("1.01")),
+        new("f7bsl", F7bslHost("1.02")),
+        new("f7bsl", F7bslHost("1.03")),
+        new("f7bsl", F7bslHost("1.04")),
         new("hpbsd", HpbsdHost(ecMinor: 1)),
         new("hpbsd", HpbsdHost(ecMinor: 2)),
     ];
@@ -111,7 +115,7 @@ internal static class Program
 
     private static int Main()
     {
-        Probe();
+        //Probe();
 
         List<(string Name, Action Body)> tests =
         [
@@ -920,7 +924,7 @@ internal static class Program
         cpu.Selector,
         0,
         .. cpu.Bands,
-        51, 100, 93, 0,
+        ..(byte[])(cpu.CriticalRow ?? [51, 100, 93, 0]),
         .. cpu.Baseline,
     ];
 
@@ -970,6 +974,17 @@ internal static class Program
             biosVersion,
             0,
             5);
+
+    private static HostIdentitySnapshot F7bslHost(string biosVersion) => new(
+        "EliteMini Series",
+        "1.0",
+        "MGF7BSL",
+        "EliteMini",
+        "F7BSL",
+        "1.0",
+        biosVersion,
+        0,
+        4);
 
     private static HostIdentitySnapshot HpbsdHost(int ecMinor) => new(
         "EliteMini Series",
@@ -1032,7 +1047,8 @@ internal static class Program
     private sealed record ExpectedCpu(
         byte Selector,
         byte[] Bands,
-        byte[] Baseline);
+        byte[] Baseline,
+        byte[]? CriticalRow = null);
 
     private sealed record ExpectedProfile(
         string Name,

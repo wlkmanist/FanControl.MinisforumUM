@@ -15,9 +15,11 @@
 
   <ItemGroup>
     <Compile Remove="tests\**\*.cs" />
+    <None Remove="PawnIoF7bslReadOnlyBackend.cs.bkp" />
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>FanControl.MinisforumUMSeries.Tests</_Parameter1>
     </AssemblyAttribute>
+    <Compile Include="PawnIoF7bslReadOnlyBackend.cs.bkp" />
     <Reference Include="FanControl.Plugins">
       <HintPath>$(FanControlDir)\FanControl.Plugins.dll</HintPath>
       <Private>false</Private>
@@ -25,8 +27,6 @@
   </ItemGroup>
 
   <Target Name="ValidateFanControlReferences" BeforeTargets="ResolveReferences">
-    <Error
-      Condition="!Exists('$(FanControlDir)\FanControl.Plugins.dll')"
-      Text="FanControl.Plugins.dll was not found. Set FanControlDir to the FanControl installation directory." />
+    <Error Condition="!Exists('$(FanControlDir)\FanControl.Plugins.dll')" Text="FanControl.Plugins.dll was not found. Set FanControlDir to the FanControl installation directory." />
   </Target>
 </Project>
