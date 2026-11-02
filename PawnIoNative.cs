@@ -59,6 +59,45 @@ internal sealed class PawnIoTransport : IF7Transport
         }
     }
 
+    internal PawnIoTransport(F7PlatformProfile profile, bool skipIdentity)
+    {
+        ArgumentNullException.ThrowIfNull(profile);
+
+        this.profile = profile;
+        isaMutex = new Mutex(false, F7bsdProfile.IsaMutexName);
+
+        string path = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+            "PawnIO",
+            "PawnIOLib.dll");
+
+        native = new PawnIoNative(path);
+        native.OpenAndLoad(LoadLpcModule());
+
+        if (!skipIdentity)
+            AssertIdentity();
+    }
+
+    internal byte[] ReadRaw(ushort[] addresses)
+    {
+        ArgumentNullException.ThrowIfNull(addresses);
+
+        return RunIsa(() =>
+        {
+            SelectSlot();
+
+            return addresses.Select(address => RunParked(
+                () =>
+                {
+                    SetAddress(address);
+                    Out(0x2e, 0x12);
+                    return checked((byte)In(0x2f));
+                },
+                Park,
+                $"XRAM read 0x{address:X4}")).ToArray();
+        });
+    }
+
     private void AssertIdentity()
     {
         F7bsdProfile.AssertReadsAllowed(F7bsdProfile.ControllerProfileAddresses);

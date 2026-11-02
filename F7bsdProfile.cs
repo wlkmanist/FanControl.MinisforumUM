@@ -94,6 +94,9 @@ internal static class F7bsdProfile
         .. CpuSnapshotAddresses,
         .. SystemPolicyAddresses,
         .. SystemStateAddresses,
+        0x0304, // should be integrated into TelemetryAddresses, this is a temperature sensor (F7BSL board)
+        0x1803, // CPU fan pwm (F7BSL board)
+        0x1804, // SYS fan pwm (F7BSL board)
     ];
 
     internal static byte ToCode(float percentage, byte maximumCode)

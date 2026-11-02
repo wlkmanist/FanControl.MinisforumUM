@@ -16,7 +16,9 @@ public sealed class MinisforumUMSeriesPlugin : IPlugin2
     private readonly ControlSensor cpuControl;
     private readonly ControlSensor systemControl;
     private readonly SystemControlDiagnostics systemDiagnostics = new();
+    private PawnIoF7bslReadOnlyBackend? f7bslBackend;
     private PawnIoF7bsdBackend? backend;
+
 
     public MinisforumUMSeriesPlugin()
         : this(null)
@@ -52,6 +54,21 @@ public sealed class MinisforumUMSeriesPlugin : IPlugin2
                 throw new InvalidOperationException(
                     "The previous backend still requires verified restoration. " +
                     "Restart Windows before reinitializing the plugin.");
+            }
+
+            HostIdentitySnapshot host = HostIdentity.Read();
+
+            if (host.Board == "F7BSL" &&
+                host.BoardVersion == "1.0" &&
+                host.EcMajor == 0 &&
+                host.EcMinor == 4)
+            {
+                f7bslBackend = new PawnIoF7bslReadOnlyBackend();
+
+                F7bslTelemetry telemetry = f7bslBackend.ReadTelemetry();
+                ApplyF7bsl(telemetry);
+
+                return;
             }
 
             PawnIoF7bsdBackend candidate = new();
@@ -94,14 +111,29 @@ public sealed class MinisforumUMSeriesPlugin : IPlugin2
         }
     }
 
+    private void ApplyF7bsl(F7bslTelemetry telemetry)
+    {
+        cpuFan.Value = telemetry.CpuFanRpm;
+        systemFan.Value = telemetry.SystemFanRpm;
+        cpuTemperature.Value = telemetry.Temperature0309;
+        systemTemperature.Value = telemetry.Temperature0305;
+    }
+
     public void Update()
     {
         lock (lifecycleSync)
         {
             try
             {
+                if (f7bslBackend is not null)
+                {
+                    ApplyF7bsl(f7bslBackend.ReadTelemetry());
+                    return;
+                }
+
                 if (backend is not null)
                 {
+
                     F7bsdTelemetry telemetry = backend.ReadTelemetry();
                     Apply(telemetry);
                     string? diagnostic = systemDiagnostics.Observe(
@@ -130,6 +162,9 @@ public sealed class MinisforumUMSeriesPlugin : IPlugin2
             {
                 try
                 {
+                    f7bslBackend?.Dispose();
+                    f7bslBackend = null;
+
                     backend.Dispose();
                     backend = null;
                 }

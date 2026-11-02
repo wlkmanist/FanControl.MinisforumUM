@@ -111,6 +111,8 @@ internal static class Program
 
     private static int Main()
     {
+        Probe();
+
         List<(string Name, Action Body)> tests =
         [
             ("host profile resolution", HostProfileResolution),
@@ -120,6 +122,7 @@ internal static class Program
         if (OperatingSystem.IsWindows())
         {
             tests.Insert(0, ("plugin identity", PluginIdentity));
+            //tests.Add(("F7BSL read-only probe", ProbeF7bsl));
         }
         tests.AddRange(ExpectedProfiles.Select(expected =>
             ($"{expected.Name} canonical tables",
@@ -157,6 +160,156 @@ internal static class Program
 
         Console.WriteLine($"{tests.Count - failures}/{tests.Count} tests passed.");
         return failures == 0 ? 0 : 1;
+    }
+
+    static void Probe()
+    {
+        F7PlatformProfile profile = F7ProfileCatalog.Get("f7bsi");
+
+        using PawnIoTransport transport = new(profile, skipIdentity: true);
+
+        ushort[] addresses =
+        [
+            0x181e, 0x181f,         // CPU tach
+            0x1820, 0x1821,         // system tach
+            0x0309, 0x0304, 0x0305, // temperatures
+
+            0x1803, 0x1804,         // pwm candidate
+
+            // SIG
+            0x2000, 0x2001, 0x2002,
+            0x200D, 0x180C, 0x1841,
+        ];
+
+        for (int i = 0; i < 40; i++)
+        {
+            byte[] values = transport.ReadRaw(addresses);
+
+            int cpuRpm = 2156250 / ((int)values[1] << 8 | (int)values[0]);
+            int sysRpm = 2156250 / ((int)values[3] << 8 | (int)values[2]);
+
+            Console.WriteLine(
+                $"{DateTime.Now:HH:mm:ss}  " +
+                $"CPU={cpuRpm}rpm " +
+                $"SYS={sysRpm}rpm " +
+                $"T={values[4]}c {values[5]}c {values[6]}c " +
+                $"PWM={values[7]:X2} {values[8]:X2}  " +
+                $"SIG={string.Join(" ", values[9..].Select(x => x.ToString("X2")))}");
+
+            Thread.Sleep(100);
+        }
+
+        /* dump
+         * 
+         * 0x0310–0x0338
+         * 0x0885–0x0892
+         * 0x1800–0x1810
+         * 0x08B0–0x08B6
+         * 0x08C0–0x08C2
+         */
+        int k = 0;
+        ushort[] addr1 = new ushort[41];
+        for (ushort i = 0x0310; i <= 0x0338; i++)
+        {
+            addr1[k] = i;
+            k++;
+        }
+
+        k = 0;
+        ushort[] addr2 = new ushort[14];
+        for (ushort i = 0x0885; i <= 0x0892; i++)
+        {
+            addr2[k] = i;
+            k++;
+        }
+
+        k = 0;
+        ushort[] addr3 = new ushort[17];
+        for (ushort i = 0x1800; i <= 0x1810; i++)
+        {
+            addr3[k] = i;
+            k++;
+        }
+
+        k = 0;
+        ushort[] addr4 = new ushort[7];
+        for (ushort i = 0x08B0; i <= 0x08B6; i++)
+        {
+            addr4[k] = i;
+            k++;
+        }
+
+        k = 0;
+        ushort[] addr5 = new ushort[3];
+        for (ushort i = 0x08C0; i <= 0x08C2; i++)
+        {
+            addr5[k] = i;
+            k++;
+        }
+
+        byte[] val1 = transport.ReadRaw(addr1);
+        Console.WriteLine(
+            $"0x0310-0x0338={string.Join(" ", val1[0..].Select(x => x.ToString("X2")))}");
+        byte[] val2 = transport.ReadRaw(addr2);
+        Console.WriteLine(
+            $"0x0885-0x0892={string.Join(" ", val2[0..].Select(x => x.ToString("X2")))}");
+        byte[] val3 = transport.ReadRaw(addr3);
+        Console.WriteLine(
+            $"0x1800-0x1810={string.Join(" ", val3[0..].Select(x => x.ToString("X2")))}");
+        byte[] val4 = transport.ReadRaw(addr4);
+        Console.WriteLine(
+            $"0x08B0-0x08B6={string.Join(" ", val4[0..].Select(x => x.ToString("X2")))}");
+        byte[] val5 = transport.ReadRaw(addr5);
+        Console.WriteLine(
+            $"0x08C0-0x08C2={string.Join(" ", val5[0..].Select(x => x.ToString("X2")))}");
+    }
+
+    private static void ProbeF7bsl()
+    {
+        HostIdentitySnapshot host = HostIdentity.Read();
+
+        if (host.Board != "F7BSL" ||
+            host.BoardVersion != "1.0" ||
+            host.EcVersion != new EcVersion(0, 4))
+        {
+            throw new PlatformNotSupportedException(
+                $"F7BSL expected 1.0 / EC 0.4; found: {host}");
+        }
+
+        // Transport and SIG checks only.
+        F7PlatformProfile profile = F7ProfileCatalog.Get("f7bsi");
+        using PawnIoTransport transport = new(profile);
+
+        ushort[] addresses =
+        [
+            0x181E, 0x181F, 0x181E,
+            0x1820, 0x1821, 0x1820,
+            0x0309, 0x0304, 0x0305,
+        ];
+
+        for (int i = 0; i < 30; i++)
+        {
+            byte[] v = transport.Read(addresses);
+
+            int cpuRpm = Decode(v.AsSpan(0, 3));
+            int systemRpm = Decode(v.AsSpan(3, 3));
+
+            Console.WriteLine(
+                $"{DateTime.Now:HH:mm:ss} " +
+                $"CPU={cpuRpm} RPM; SYS={systemRpm} RPM; " +
+                $"0309={v[6]:X2}; 0304={v[7]:X2}; 0305={v[8]:X2}");
+
+            Thread.Sleep(1000);
+        }
+
+        static int Decode(ReadOnlySpan<byte> sample)
+        {
+            if (sample[0] != sample[2])
+                return -1; // unstable
+
+            ushort counter = (ushort)(sample[0] | (sample[1] << 8));
+            return counter == 0 ? 0 : 2156250 / counter;
+        }
     }
 
     private static void PluginIdentity()
