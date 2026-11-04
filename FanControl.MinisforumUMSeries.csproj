@@ -15,11 +15,9 @@
 
   <ItemGroup>
     <Compile Remove="tests\**\*.cs" />
-    <None Remove="PawnIoF7bslReadOnlyBackend.cs.bkp" />
     <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
       <_Parameter1>FanControl.MinisforumUMSeries.Tests</_Parameter1>
     </AssemblyAttribute>
-    <Compile Include="PawnIoF7bslReadOnlyBackend.cs.bkp" />
     <Reference Include="FanControl.Plugins">
       <HintPath>$(FanControlDir)\FanControl.Plugins.dll</HintPath>
       <Private>false</Private>

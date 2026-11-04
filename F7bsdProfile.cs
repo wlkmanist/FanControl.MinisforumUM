@@ -153,15 +153,14 @@ internal static class F7bsdProfile
 
         ReadOnlySpan<byte> mutable = snapshot[mutableOffset..];
 
-        /// TODO: fixme !!!!!!!
-        CpuStartupState state = CpuStartupState.Firmware;
-        ///CpuStartupState state = mutable.SequenceEqual(profile.Baseline)
-        ///    ? CpuStartupState.Firmware
-        ///    : IsRecoverableCpuMutable(mutable, profile.Baseline)
-        ///        ? CpuStartupState.Recoverable
-        ///        : throw new PlatformNotSupportedException(
-        ///            "The CPU table is neither canonical firmware state nor an exact " +
-        ///            "reachable prefix of this plugin's raw-control writes.");
+        ///CpuStartupState state = CpuStartupState.Firmware;
+        CpuStartupState state = mutable.SequenceEqual(profile.Baseline)
+            ? CpuStartupState.Firmware
+            : IsRecoverableCpuMutable(mutable, profile.Baseline)
+                ? CpuStartupState.Recoverable
+                : throw new PlatformNotSupportedException(
+                    "The CPU table is neither canonical firmware state nor an exact " +
+                    "reachable prefix of this plugin's raw-control writes.");
         return new CpuStartupClassification(
             state,
             profile.Selector,
