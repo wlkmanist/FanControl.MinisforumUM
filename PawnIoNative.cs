@@ -59,6 +59,7 @@ internal sealed class PawnIoTransport : IF7Transport
         }
     }
 
+    // Used in tests only
     internal PawnIoTransport(F7PlatformProfile profile, bool skipIdentity)
     {
         ArgumentNullException.ThrowIfNull(profile);

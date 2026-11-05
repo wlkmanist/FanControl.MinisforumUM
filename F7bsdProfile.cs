@@ -85,9 +85,6 @@ internal static class F7bsdProfile
     internal static readonly ushort[] SystemEffectiveTemperaturePollAddresses =
         [SystemEffectiveTemperatureAddress];
 
-    //private static readonly byte[] ExpectedCpuCriticalRow = [51, 100, 93, 0];
-    //private static readonly byte[] ExpectedCpuCriticalRowF7bsl = [51, 100, 92, 0];
-
     private static readonly HashSet<ushort> ReadAllowlist =
     [
         .. ControllerProfileAddresses,
@@ -95,9 +92,6 @@ internal static class F7bsdProfile
         .. CpuSnapshotAddresses,
         .. SystemPolicyAddresses,
         .. SystemStateAddresses,
-        0x0304, // should be integrated into TelemetryAddresses, this is a temperature sensor (F7BSL board)
-        0x1803, // CPU fan pwm (F7BSL board)
-        0x1804, // SYS fan pwm (F7BSL board)
     ];
 
     internal static byte ToCode(float percentage, byte maximumCode)
@@ -153,7 +147,6 @@ internal static class F7bsdProfile
 
         ReadOnlySpan<byte> mutable = snapshot[mutableOffset..];
 
-        ///CpuStartupState state = CpuStartupState.Firmware;
         CpuStartupState state = mutable.SequenceEqual(profile.Baseline)
             ? CpuStartupState.Firmware
             : IsRecoverableCpuMutable(mutable, profile.Baseline)

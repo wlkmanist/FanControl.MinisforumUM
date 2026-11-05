@@ -27,7 +27,6 @@ internal static class Program
     ];
 
     private static readonly byte[] F7bslStandardBands =
- 
     [
         25, 0,
         45, 25,
@@ -207,11 +206,11 @@ internal static class Program
 
         ushort[] addresses =
         [
-            0x181e, 0x181f,         // CPU tach
-            0x1820, 0x1821,         // system tach
-            0x0309, 0x0304, 0x0305, // temperatures
-
-            0x1803, 0x1804,         // pwm candidate
+            0x181e, 0x181f,     // CPU tacho
+            0x1820, 0x1821,     // system tach
+            0x0309, 0x0305,     // temperatures
+            //0x0304,           // temperatures
+            //0x1803, 0x1804,   // pwm
 
             // SIG
             0x2000, 0x2001, 0x2002,

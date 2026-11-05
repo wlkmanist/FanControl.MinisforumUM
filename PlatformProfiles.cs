@@ -241,15 +241,9 @@ internal sealed class F7PlatformProfile
             {
                 throw new ArgumentException($"CPU profile {Id}/0x{cpu.Selector:X2} is invalid. (cpu.Baseline).");
             }
-            //if (!HasContiguousBands(cpu.Bands, finalUpper: 93))
-            //{
-            //    throw new ArgumentException($"CPU profile {Id}/0x{cpu.Selector:X2} is invalid. (HasContiguousBands).");
-            //}
-
             if (cpu.CriticalRow.Length != 4)
             {
-                throw new ArgumentException(
-                    $"CPU critical row for profile {Id} must contain 4 bytes.");
+                throw new ArgumentException($"CPU critical row for profile {Id} must contain 4 bytes.");
             }
         }
 
