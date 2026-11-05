@@ -1,4 +1,5 @@
-# FanControl.MinisforumUM
+# FanControl.MinisforumUM (fork)
+(Added F7BSL board support)
 
 A [Fan Control](https://github.com/Rem0o/FanControl.Releases) plugin for
 selected Minisforum UM-series computers. It provides CPU and system fan speeds,
@@ -12,6 +13,9 @@ raw EC temperatures, and independent CPU and system fan controls.
 
 | Models | Required EC | BIOS versions examined | Validation |
 |---|---|---|---|
+| UM690 Slim | `0.4` | `1.01`, `1.04` | Live tested |
+| UM750 Slim | `0.4` | `1.01` | Shared vendor image; not live-tested |
+| UM773 Slim | `0.4` | `1.01` | Shared vendor image; not live-tested |
 | UM780 XTX | `0.8` | `1.06` | Live write-tested |
 | UM790 XTX | `0.8` | `1.06` | Shared vendor image; not live-tested |
 | UM690 Pro | `0.8` | `1.06` | Firmware-derived |
@@ -68,7 +72,7 @@ check.
 ## More information
 
 - [Technical compatibility and safety design](docs/technical.md)
-- [Building, testing, and contributing](CONTRIBUTING.md)
+- [Building, testing, and contributing](CONTRIBUTING.md) (original author info)
 
 ## Linux support
 Not here, but checkout [mordilloSan/fan_control](https://github.com/mordilloSan/fan_control)
