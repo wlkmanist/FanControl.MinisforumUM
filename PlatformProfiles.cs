@@ -422,11 +422,10 @@ internal static class F7ProfileCatalog
 
     private static readonly CpuProfileDefinition[] F7bslCpuProfiles =
     [
-        // TODO: add other profiles
+        Cpu(0xb1, F7bslStandardBands,
+            [0, 16, 18, 22, 25, 27, 29, 0, 10, 44, 25, 20, 16, 75], criticalRow: [51, 100, 92, 0]),
         Cpu(0xb2, F7bslPerformanceBands,
-            //[0, 18, 22, 29, 31, 34, 37, 0, 20, 77, 16, 7, 25, 125], criticalRow: [51, 100, 92, 0]),
-            [0x00, 0x12, 0x16, 0x1D, 0x1F, 0x20, 0x22, 0x00, 0x14, 0x4D, 0x10, 0x07, 0x19, 0x7D],
-            criticalRow: [51, 100, 92, 0]),
+            [0, 18, 22, 29, 31, 32, 34, 0, 20, 77, 16, 7, 25, 125], criticalRow: [51, 100, 92, 0]),
     ];
 
     private static readonly CpuProfileDefinition[] HpbsdCpuProfiles =
